@@ -4,10 +4,9 @@ import com.learning.airport.entity.AirportEntity;
 import com.learning.airport.service.AirportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -16,7 +15,17 @@ public class AirportController {
     private final AirportService airportService;
 
     @GetMapping("/{airportCode}")
-    public ResponseEntity<AirportEntity> detail(@PathVariable String airportCode) {
-        return ResponseEntity.ok(airportService.detail(airportCode));
+    public ResponseEntity<AirportEntity> getDetail(@PathVariable String airportCode) {
+        return ResponseEntity.ok(airportService.getDetail(airportCode));
+    }
+
+    @GetMapping()
+    public ResponseEntity<List<AirportEntity>> getListAirport(@RequestParam List<Object> airportCodes) {
+        return ResponseEntity.ok(airportService.getListAirport(airportCodes));
+    }
+
+    @PostMapping("")
+    public ResponseEntity<AirportEntity> saveAirport(@RequestBody AirportEntity airport) {
+        return ResponseEntity.ok(airportService.saveAirport(airport));
     }
 }
