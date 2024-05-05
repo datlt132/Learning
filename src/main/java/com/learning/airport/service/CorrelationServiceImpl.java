@@ -253,13 +253,13 @@ public class CorrelationServiceImpl implements CorrelationService {
         x3pExamService.updateIsMatchingSamples(List.of(x3pExam.getId()), false);
     }
 
-    private double calculateCorrelationScoreBySignature() {
+    private double calculateCorrelationScoreBySignature(X3pExamFile exam, X3pSampleFile sample) {
         float score = 0.5f;
         return score < MIN_SCORE || score > MAX_SCORE ? 0 : score;
     }
 
-    private double calculateCorrelationScoreCFFMax() {
-        float score = 0.5f;
+    private double calculateCorrelationScoreCFFMax(X3pExamFile exam, X3pSampleFile sample) {
+        double score = 0.5f;
         return score < MIN_SCORE || score > MAX_SCORE ? 0 : score;
     }
 }
