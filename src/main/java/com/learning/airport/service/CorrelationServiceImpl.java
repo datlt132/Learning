@@ -254,7 +254,7 @@ public class CorrelationServiceImpl implements CorrelationService {
     }
 
     private double calculateCorrelationScoreBySignature(X3pExamFile exam, X3pSampleFile sample) {
-        float score = 0.5f;
+        double score = 0.5f;
         return score < MIN_SCORE || score > MAX_SCORE ? 0 : score;
     }
 
