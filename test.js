@@ -67,14 +67,18 @@ describe('listTopMatching', () => {
 
     it('should return forbidden if user does not have permission', async () => {
         x3pExamFindOneStub.resolves(null)
+
         await matchingSampleController.listTopMatching(req, res, next)
+
         expect(next.calledWith(errorFactory.forbidden("Permission denied!"))).to.be.true
     })
 
     it('should return empty page if no sample match query params', async () => {
         x3pExamFindOneStub.resolves({userId: 7})
         x3pSampleFindAllStub.resolves(null)
+
         await matchingSampleController.listTopMatching(req, res, next)
+
         expect(res.status.calledWith(200)).to.be.true
         expect(res.json.calledWith(pageEmpty())).to.be.true
     })
@@ -82,7 +86,9 @@ describe('listTopMatching', () => {
     it('should return error if database throw exception', async () => {
         let dbError = new Error('Sequelize error')
         x3pExamFindOneStub.rejects(dbError)
+
         await matchingSampleController.listTopMatching(req, res, next)
+
         expect(next.calledWith(dbError))
     })
 
@@ -114,10 +120,12 @@ describe('listTopMatching', () => {
             occurrenceDate: 'occurrenceDate',
             recoveryLocation: 'recoveryLocation'
         }]
+
         await matchingSampleController.listTopMatching(req, res, next)
+
         expect(res.send.calledWith(getPagingData(returnData, 0, 10, 1))).to.be.true
     })
-}
+})
 
 describe('changeStatus', () => {
     let req, res, next
@@ -249,104 +257,6 @@ describe('exportX3p', () => {
         await matchingSampleController.exportX3p(req, res, next)
 
         expect(res.download.calledWith("zipFilePath")).to.be.true
-    })
-
-})
-
-describe('exportPdf', () => {
-    let req, res, next
-    let matchingSampleFindAllStub, sampleFindAllStub, examFindAllStub
-
-    beforeEach(() => {
-        req = {
-            query: {
-                activityIds: [1],
-                matchStatus: ["matchStatus"],
-                type: ["type"],
-                crime: ["crime"],
-                calibre: ["calibre"]
-            },
-            user: {id: 1}
-        };
-        res = {
-            download: sinon.stub()
-        };
-        next = sinon.stub();
-        global.sequelizeModels = {
-            MatchingSample: {
-                findAll() {
-                },
-            },
-            X3PSample: {
-                findAll() {
-                }
-            },
-            X3PExam: {
-                findAll() {
-                }
-            }
-        };
-
-        matchingSampleFindAllStub = sinon.stub(global.sequelizeModels.MatchingSample, "findAll");
-        sampleFindAllStub = sinon.stub(global.sequelizeModels.X3PSample, "findAll");
-        examFindAllStub = sinon.stub(global.sequelizeModels.X3PExam, "findAll");
-        sinon.stub(errorFactory, "notFound");
-    });
-
-    afterEach(() => {
-        sinon.restore();
-    });
-
-    it('should return 500 if createPdfKitDocument error', async () => {
-        matchingSampleFindAllStub.resolves([])
-        sampleFindAllStub.resolves([])
-        examFindAllStub.resolves([{
-            id: 1,
-            type: 'exam',
-            artefactType: "artefactType",
-            metadata: {
-                fileHash: "fileHash",
-                name: "name",
-                description: "description",
-                crime: "crime",
-                recoveryLocation: "recoveryLocation",
-                occurrenceDate: "occurrenceDate",
-                calibre: "calibre",
-                numberOfLandsAndGrooves: "numberOfLandsAndGrooves",
-                directionOfLandsAndGrooves: "directionOfLandsAndGrooves",
-                riflingManufacturing: "riflingManufacturing",
-                manufacturingMaterial: "manufacturingMaterial"
-            }
-        }])
-
-        await matchingSampleController.exportPdf(req, res, next)
-
-        expect(next.calledOnce).to.be.true
-    })
-
-    it('should return 200 if request valid', async () => {
-        matchingSampleFindAllStub.resolves([{examId: 1, sampleId: 1, matchStatus: "matchStatus"}])
-        sampleFindAllStub.resolves([])
-        examFindAllStub.resolves([{
-            id: 1,
-            type: 'exam',
-            artefactType: "artefactType",
-            metadata: {
-                fileHash: "fileHash",
-                name: "name",
-                description: "description",
-                crime: "crime",
-                recoveryLocation: "recoveryLocation",
-                occurrenceDate: "occurrenceDate",
-                calibre: "calibre",
-                numberOfLandsAndGrooves: "numberOfLandsAndGrooves",
-                directionOfLandsAndGrooves: "directionOfLandsAndGrooves",
-                riflingManufacturing: "riflingManufacturing",
-                manufacturingMaterial: "manufacturingMaterial"
-            }
-        }])
-
-        await matchingSampleController.exportPdf(req, res, next)
     })
 
 })

@@ -7,15 +7,6 @@ const {MatchStatus} = require("../enums/match-status.type");
 const CommonUtil = require('../utils/common.util')
 const _ = require("lodash");
 const CryptoJS = require("crypto-js");
-const PdfPrinter = require('pdfmake');
-const fonts = {
-    Roboto: {
-        normal: 'fonts/Roboto-Regular.ttf',
-        bold: 'fonts/Roboto-Medium.ttf',
-        italics: 'fonts/Roboto-Italic.ttf',
-        bolditalics: 'fonts/Roboto-MediumItalic.ttf'
-    }
-};
 
 const listTopMatching = async (req, res, next) => {
     try {
@@ -227,105 +218,8 @@ const getMatchingSampleToExport = async (req) => {
     });
 }
 
-const getX3PDetail = async (matchingSample) => {
-    const {X3PSample, X3PExam, Metadata} = global.sequelizeModels
-    const sampleIds = [], examIds = [];
-    matchingSample.forEach(matchingSample => {
-        examIds.push(matchingSample.examId)
-        if (matchingSample.matchStatus !== MatchStatus.NO_MATCHES) {
-            sampleIds.push(matchingSample.sampleId)
-        }
-    })
-
-    let sampleInfos = await X3PSample.findAll({
-        where: {id: {[Op.in]: sampleIds}},
-        include: [{
-            model: Metadata,
-            as: 'metadata'
-        }]
-    })
-    let x3pDetailInfos = sampleInfos.map(sampleInfo => {
-        return {
-            id: sampleInfo?.id,
-            type: 'sample',
-            fileHash: sampleInfo?.metadata?.fileHash,
-            artefactType: sampleInfo?.artefactType,
-            name: sampleInfo?.metadata?.name,
-            description: sampleInfo?.metadata?.description,
-            crime: sampleInfo?.metadata?.crime,
-            recoveryLocation: sampleInfo?.metadata?.recoveryLocation,
-            occurrenceDate: sampleInfo?.metadata?.occurrenceDate,
-            calibre: sampleInfo?.metadata?.calibre,
-            numberOfLandsAndGrooves: sampleInfo?.metadata?.numberOfLandsAndGrooves,
-            directionOfLandsAndGrooves: sampleInfo?.metadata?.directionOfLandsAndGrooves,
-            riflingManufacturing: sampleInfo?.metadata?.riflingManufacturing,
-            manufacturingMaterial: sampleInfo?.metadata?.manufacturingMaterial
-        }
-    })
-
-    let examInfos = await X3PExam.findAll({
-        where: {id: {[Op.in]: examIds}},
-        include: [{
-            model: Metadata,
-            as: 'metadata'
-        }]
-    })
-    examInfos.forEach(examInfo => {
-        x3pDetailInfos.push({
-            id: examInfo?.id,
-            type: 'exam',
-            fileHash: examInfo?.metadata?.fileHash,
-            artefactType: examInfo?.artefactType,
-            name: examInfo?.metadata?.name,
-            description: examInfo?.metadata?.description,
-            crime: examInfo?.metadata?.crime,
-            recoveryLocation: examInfo?.metadata?.recoveryLocation,
-            occurrenceDate: examInfo?.metadata?.occurrenceDate,
-            calibre: examInfo?.metadata?.calibre,
-            numberOfLandsAndGrooves: examInfo?.metadata?.numberOfLandsAndGrooves,
-            directionOfLandsAndGrooves: examInfo?.metadata?.directionOfLandsAndGrooves,
-            riflingManufacturing: examInfo?.metadata?.riflingManufacturing,
-            manufacturingMaterial: examInfo?.metadata?.manufacturingMaterial
-        })
-    })
-
-    return x3pDetailInfos;
-}
-
-const exportPdf = async (req, res, next) => {
-    try {
-        const matchingSample = await getMatchingSampleToExport(req)
-        const x3pDetailInfos = await getX3PDetail(matchingSample)
-        let content = [Object.keys(x3pDetailInfos[0]).map(key => _.startCase(key))];
-        x3pDetailInfos.forEach(x3pDetailInfo => {
-            content.push(Object.values(x3pDetailInfo))
-        })
-
-        const printer = new PdfPrinter(fonts);
-        let docDefinition = {
-            pageSize: 'A2',
-            pageOrientation: 'landscape',
-            content: [{
-                table: {
-                    headerRows: 1,
-                    body: content
-                }
-            }]
-        };
-
-        let pdfDoc = printer.createPdfKitDocument(docDefinition, {});
-        pdfDoc.pipe(res);
-        pdfDoc.end();
-    } catch (err) {
-        console.error(err)
-        next(errorFactory.internalServerError(err))
-    }
-
-}
-
 module.exports = {
     listTopMatching,
     changeStatus,
-    exportX3p,
-    exportPdf,
+    exportX3p
 }
